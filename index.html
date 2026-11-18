@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"><title>Sky War</title></head>
-<body style="margin:0;background:#001;overflow:hidden;touch-action:none;font-family:sans-serif;color:#fff">
+<body style="margin:0;background:#000520;overflow:hidden;touch-action:none;font-family:sans-serif;color:#fff">
 <canvas id="c"></canvas>
 <script>
 const c=document.getElementById('c'), x=c.getContext('2d');
@@ -11,37 +11,40 @@ window.onresize=resize; resize();
 const spawn=()=>enemies.push({x:Math.random()*(w-40), y:-40, w:40, h:40, s:2+Math.random()*3});
 setInterval(()=>!over&&spawn(), 1000);
 const loop=()=>{
-  x.fillStyle='#001'; x.fillRect(0,0,w,h);
+  x.fillStyle='#000520'; x.fillRect(0,0,w,h);
   if(over){
-    x.fillStyle='#fff'; x.textAlign='center'; x.font='20px sans-serif';
+    x.fillStyle='#fff'; x.textAlign='center'; x.font='24px sans-serif';
     x.fillText('GAME OVER', w/2, h/2);
-    x.fillText('Score: '+score, w/2, h/2+30);
-    x.fillText('Tap to Restart', w/2, h/2+60);
+    x.fillText('Score: '+score, w/2, h/2+40);
+    x.fillText('Tap to Restart', w/2, h/2+80);
     return requestAnimationFrame(loop);
   }
-  x.fillStyle='#0f0'; x.fillRect(player.x, player.y, player.w, player.h);
+  // Draw Player (Blue Jet)
+  x.fillStyle='#0af'; x.fillRect(player.x, player.y, player.w, player.h);
+  // Bullets
   bullets.forEach((b,i)=>{
-    b.y-=10; x.fillStyle='#ff0'; x.fillRect(b.x, b.y, 5, 10);
+    b.y-=12; x.fillStyle='#ff0'; x.fillRect(b.x, b.y, 4, 12);
     if(b.y<0) bullets.splice(i,1);
   });
+  // Enemies (Red)
   enemies.forEach((e,i)=>{
-    e.y+=e.s; x.fillStyle='#f00'; x.fillRect(e.x, e.y, e.w, e.h);
+    e.y+=e.s; x.fillStyle='#f33'; x.fillRect(e.x, e.y, e.w, e.h);
     if(e.y>h) enemies.splice(i,1);
     if(e.x<player.x+player.w&&e.x+e.w>player.x&&e.y<player.y+player.h&&e.y+e.h>player.y) over=1;
     bullets.forEach((b,bi)=>{
-      if(b.x<e.x+e.w&&b.x+5>e.x&&b.y<e.y+e.h&&b.y+10>e.y){
+      if(b.x<e.x+e.w&&b.x+4>e.x&&b.y<e.y+e.h&&b.y+12>e.y){
         enemies.splice(i,1); bullets.splice(bi,1); score+=10;
       }
     });
   });
-  x.fillStyle='#fff'; x.font='16px sans-serif'; x.fillText('Score: '+score, 20, 30);
+  x.fillStyle='#fff'; x.font='18px sans-serif'; x.fillText('Score: '+score, 20, 40);
   requestAnimationFrame(loop);
 };
 loop();
 const handle=(ex,ey)=>{
   if(over){over=0; score=0; enemies=[]; bullets=[]; return}
   player.x=Math.max(0, Math.min(w-player.w, ex-player.w/2));
-  if(bullets.length<10) bullets.push({x:player.x+player.w/2-2, y:player.y});
+  if(bullets.length<15) bullets.push({x:player.x+player.w/2-2, y:player.y});
 };
 ontouchmove=e=>{e.preventDefault(); handle(e.touches[0].clientX, e.touches[0].clientY)};
 onmousemove=e=>handle(e.clientX, e.clientY);
