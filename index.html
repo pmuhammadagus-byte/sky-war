@@ -1,34 +1,50 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"><title>Snake</title></head>
-<body style="margin:0;background:#000;display:grid;place-items:center;height:100vh;overflow:hidden;touch-action:none">
-<canvas id="c" width="400" height="400" style="border:2px solid #fff;max-width:95vw;max-height:95vw"></canvas>
+<head><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"><title>Sky War</title></head>
+<body style="margin:0;background:#001;overflow:hidden;touch-action:none;font-family:sans-serif;color:#fff">
+<canvas id="c"></canvas>
 <script>
-const c=document.getElementById('c'),x=c.getContext('2d'),s=20;
-let snake=[{x:10,y:10}], food={x:15,y:15}, d={x:0,y:0}, score=0;
-setInterval(()=>{
-  if(d.x||d.y){
-    snake.unshift({x:snake[0].x+d.x, y:snake[0].y+d.y});
-    if(snake[0].x==food.x && snake[0].y==food.y){
-      score++; food={x:Math.floor(Math.random()*20), y:Math.floor(Math.random()*20)};
-    } else snake.pop();
-    if(snake[0].x<0||snake[0].x>19||snake[0].y<0||snake[0].y>19||snake.slice(1).some(s=>s.x==snake[0].x&&s.y==snake[0].y)) {
-      snake=[{x:10,y:10}]; d={x:0,y:0}; score=0;
-    }
+const c=document.getElementById('c'), x=c.getContext('2d');
+let w, h, player, bullets=[], enemies=[], score=0, over=0;
+const resize=()=>{w=c.width=innerWidth; h=c.height=innerHeight; player={x:w/2, y:h-80, w:40, h:40}};
+window.onresize=resize; resize();
+const spawn=()=>enemies.push({x:Math.random()*(w-40), y:-40, w:40, h:40, s:2+Math.random()*3});
+setInterval(()=>!over&&spawn(), 1000);
+const loop=()=>{
+  x.fillStyle='#001'; x.fillRect(0,0,w,h);
+  if(over){
+    x.fillStyle='#fff'; x.textAlign='center'; x.font='20px sans-serif';
+    x.fillText('GAME OVER', w/2, h/2);
+    x.fillText('Score: '+score, w/2, h/2+30);
+    x.fillText('Tap to Restart', w/2, h/2+60);
+    return requestAnimationFrame(loop);
   }
-  x.fillStyle='#000'; x.fillRect(0,0,400,400);
-  x.fillStyle='#f00'; x.fillRect(food.x*s,food.y*s,s,s);
-  x.fillStyle='#0f0'; snake.forEach(p=>x.fillRect(p.x*s,p.y*s,s,s));
-  x.fillStyle='#fff'; x.fillText("Score: "+score,10,20);
-},100);
-const move=k=>{ if(k&&(k[0]!=-d.x||k[1]!=-d.y)) d={x:k[0],y:k[1]}};
-onkeydown=e=>move({37:[-1,0],38:[0,-1],39:[1,0],40:[0,1]}[e.keyCode]);
-let touchX,touchY;
-ontouchstart=e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY};
-ontouchend=e=>{
-  const dx=e.changedTouches[0].clientX-touchX, dy=e.changedTouches[0].clientY-touchY;
-  if(Math.abs(dx)>Math.abs(dy)) move(dx>0?[1,0]:[-1,0]);
-  else move(dy>0?[0,1]:[0,-1]);
+  x.fillStyle='#0f0'; x.fillRect(player.x, player.y, player.w, player.h);
+  bullets.forEach((b,i)=>{
+    b.y-=10; x.fillStyle='#ff0'; x.fillRect(b.x, b.y, 5, 10);
+    if(b.y<0) bullets.splice(i,1);
+  });
+  enemies.forEach((e,i)=>{
+    e.y+=e.s; x.fillStyle='#f00'; x.fillRect(e.x, e.y, e.w, e.h);
+    if(e.y>h) enemies.splice(i,1);
+    if(e.x<player.x+player.w&&e.x+e.w>player.x&&e.y<player.y+player.h&&e.y+e.h>player.y) over=1;
+    bullets.forEach((b,bi)=>{
+      if(b.x<e.x+e.w&&b.x+5>e.x&&b.y<e.y+e.h&&b.y+10>e.y){
+        enemies.splice(i,1); bullets.splice(bi,1); score+=10;
+      }
+    });
+  });
+  x.fillStyle='#fff'; x.font='16px sans-serif'; x.fillText('Score: '+score, 20, 30);
+  requestAnimationFrame(loop);
 };
+loop();
+const handle=(ex,ey)=>{
+  if(over){over=0; score=0; enemies=[]; bullets=[]; return}
+  player.x=Math.max(0, Math.min(w-player.w, ex-player.w/2));
+  if(bullets.length<10) bullets.push({x:player.x+player.w/2-2, y:player.y});
+};
+ontouchmove=e=>{e.preventDefault(); handle(e.touches[0].clientX, e.touches[0].clientY)};
+onmousemove=e=>handle(e.clientX, e.clientY);
+onclick=()=>over&&(over=0,score=0,enemies=[],bullets=[]);
 </script>
 </body></html>
