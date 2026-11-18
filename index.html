@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<body style="margin:0;background:#000;display:grid;place-items:center;height:100vh">
+<canvas id="c" width="400" height="400" style="border:2px solid #fff"></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),s=20;
+let snake=[{x:10,y:10}], food={x:15,y:15}, d={x:0,y:0}, score=0;
+setInterval(()=>{
+  snake.unshift({x:snake[0].x+d.x, y:snake[0].y+d.y});
+  if(snake[0].x==food.x && snake[0].y==food.y){
+    score++; food={x:Math.floor(Math.random()*20), y:Math.floor(Math.random()*20)};
+  } else snake.pop();
+  if(snake[0].x<0||snake[0].x>19||snake[0].y<0||snake[0].y>19||snake.slice(1).some(s=>s.x==snake[0].x&&s.y==snake[0].y)) {
+    snake=[{x:10,y:10}]; d={x:0,y:0}; score=0;
+  }
+  x.fillStyle='#000'; x.fillRect(0,0,400,400);
+  x.fillStyle='#f00'; x.fillRect(food.x*s,food.y*s,s,s);
+  x.fillStyle='#0f0'; snake.forEach(p=>x.fillRect(p.x*s,p.y*s,s,s));
+},100);
+onkeydown=e=>{
+  const k={37:[-1,0],38:[0,-1],39:[1,0],40:[0,1]}[e.keyCode];
+  if(k && (k[0]!=-d.x || k[1]!=-d.y)) d={x:k[0],y:k[1]};
+};
+</script>
